@@ -182,4 +182,12 @@ $.Interaction.add('selectable', {
 	}
 });
 
+// Update element on selection change
+$.Interaction.listen('selectable',{
+	change: function()
+	{
+		this.element.update();
+	}
+});
+
 })(jQuery);

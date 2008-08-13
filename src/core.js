@@ -291,7 +291,8 @@ $.Interaction.mouse =
 	
 		if(event.preventDefault)
 			event.preventDefault();
-		else if($.browser.msie)
+		
+		if($.browser.msie)
 			document.onselectstart = function(){return false};
 	
 		$(document)
@@ -333,8 +334,9 @@ $.Interaction.mouse =
 		$(document)
 			.unbind('mousemove.'+this.name, this.wrap('mouseMove'))
 			.unbind('mouseup.'+this.name, this.wrap('mouseUp'));
-	
-		document.onselectstart = function(){return true;};
+		
+		if($.browser.msie)
+			document.onselectstart = function(){return true;};
 	
 		if(this.isMouseStarted)
 		{

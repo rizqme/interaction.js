@@ -19,6 +19,7 @@ $.Interaction.add('droppable', {
 		classPrefix: 'drop-',
 		activeClass: 'active',
 		hoverClass: 'hover',
+		dynamic: true,
 		nested: false
 	},
 	

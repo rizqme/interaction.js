@@ -70,11 +70,12 @@ $.Interaction.add('sortable', {
 		
 		if(marker == 'transparent')
 			marker = function(item){
-				return item.clone().css('visibility', 'hidden');
+				return item.eq(0).clone().css('visibility', 'hidden');
 			};
 		else if(marker == 'separator')
 			marker = function(item, align){
-				return $('<div>&nbsp;</div>')
+				return $('<div></div>')
+					.css('overflow', 'hidden')
 					.addClass('interaction-sortable-separator')[(align == 'vertical' ? 'height' : 'width')](0);
 			};
 		else
@@ -118,30 +119,42 @@ $.Interaction.add('sortable', {
 				return;
 			}
 			
-			this.element.items().each(function(){
-				var hover = $(this);
+			var items = this.element.items();
+			var markerIndex = marker.parent().children(':visible').index(marker);
+			
+			for(var i=0; i<items.length; i++)
+			{
+				var hover = $(items[i]);
 				var offset = hover.offset();
 				
 				offset.height = hover[0].offsetHeight;
 				offset.width = hover[0].offsetWidth;
-			
-				var xy = setting.align == 'vertical' ? 'y' : 'x';
-				var tl = setting.align == 'vertical' ? 'top' : 'left';
-				var hw = setting.align == 'vertical' ? 'height' : 'width';
 				
-				self.currentIndex = marker.parent().children(':visible').index(marker);
+				if(setting.align == 'vertical')
+				{ var xy = 'y';var tl = 'top';var hw = 'height'; }
+				else
+				{ var xy = 'x';var tl = 'left';var hw = 'width'; }
+				
+				self.currentIndex = markerIndex;
 				var moved = self.currentIndex != self.lastIndex;
 			
-				if(pos[xy] - offset[tl] > 0 && pos[xy] - offset[tl] < setting.boundary)
+				if(hover.prev()[0] != marker[marker.length-1]
+					&& pos[xy] - offset[tl] > 0 && pos[xy] - offset[tl] < setting.boundary)
 					hover.before(marker);
-				else if(offset[tl] + offset[hw] - pos[xy] > 0 && offset[tl] + offset[hw] - pos[xy] < setting.boundary)
+				else if(hover.next()[0] != marker[0]
+					&& offset[tl] + offset[hw] - pos[xy] > 0 && offset[tl] + offset[hw] - pos[xy] < setting.boundary)
 					hover.after(marker);
 				
 				if(moved)
+				{
 					self.callListener('reorder');
+					self.lastIndex = self.currentIndex;
+					break;
+				}
+			}
+			this.element.items().each(function(){
 				
-				self.lastIndex = self.currentIndex;
-			})
+			});
 		}
 	},
 	

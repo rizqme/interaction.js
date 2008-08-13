@@ -34,27 +34,31 @@ $.Interaction.add('selectable', {
 					return self.mouseClick(event, item);
 			});
 		
-		if(this.setting.required && !this.selected.length && item.parent().children().index(item) == 0)
-			this.$select(item);
+		if(this.setting.required && !this.selected.length && item.parent().children(':visible').index(item) == 0)
+			this.select(item);
 		else if(this.selected.index(item) > -1)
-			this.$select(item);
+			this.select(item);
 	},
 	
 	mouseDown: function(event, item)
 	{
+		this.mouseDownEvent = event;
 		var draggable = this.element.draggable('service');
 		if(draggable && this.$selected(item) && this.setting.drag)
 		{
 			draggable.mouseUp(draggable.mouseDownEvent);
-			draggable.item = this.selected;
+			draggable.item = this.selected.filter(':visible');
 			draggable.mouseDown(event);
 		}
 	},
 	
 	mouseClick: function(event, item)
 	{
+		if($.browser.msie && this.mouseDownEvent);
+			event = this.mouseDownEvent;
+		
 		if(event.which != 1)
-			return;
+			alert(event.which);
 		
 		if(event.metaKey)
 		{
@@ -69,7 +73,7 @@ $.Interaction.add('selectable', {
 			
 			if(selected.length && !$.Chain.jidentic(item, selected))
 			{
-				var items = selected.parent().children();
+				var items = selected.parent().children(':visible');
 				var dir = items.index(selected) < items.index(item) ? 'next' : 'prev';
 				var next = selected[dir]();
 				while(next.length)
@@ -175,10 +179,12 @@ $.Interaction.add('selectable', {
 	{
 		if(!this.isEnabled) return $().eq(-1);
 		
-		if(arguments.length && typeof item != 'boolean' && item !== null)
+		if(item === true)
+			return this.selected;
+		else if(arguments.length && typeof item != 'boolean' && item !== null)
 			return this.selected.index(this.element.items(item)) > -1;
 		else
-			return this.selected;
+			return this.selected.filter(':visible');
 	}
 });
 

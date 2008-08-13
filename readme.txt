@@ -16,4 +16,4 @@ FOR DEVELOPER
 to generate interaction.js please do in terminal:
 $ sh generate.sh
 
-It will generate a new interaction.js from source. To include a new source file please open "generate" in your texteditor and add the new source file at the end of sources list
+It will generate a new interaction.js from source. To include a new source file please open "generate.sh" in your texteditor and add the new source file at the end of sources list

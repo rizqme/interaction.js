@@ -1098,6 +1098,15 @@ $.Interaction.add('selectable', {
 		
 		this.selected = this.setting.selected ? $(this.setting.selected) : $().eq(-1);
 		
+		var self = this;
+		this.element.items('collection', 'selected', function(){
+			return self.selected.filter(':visible');
+		});
+		
+		this.element.items('collection', 'selected-all', function(){
+			return self.selected;
+		});
+		
 		this.extractListener('select', 'unselect', 'change');
 		this.callListener('init');
 	},

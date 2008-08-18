@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<title>Demo: Fill Up with Data</title>
+		<script src="../lib/jquery-1.2.6.pack.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../lib/chain.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../build/interaction.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		 <div style="float:left;width:200px;color:#444;border:1px solid #BBB;" id="persons">
+			<div style="cursor:default;width:190px;background:#DCE9F4;padding:4px;margin:1px;" class="item"><span class="first">First</span> <span class="last">Last</span></div>
+		</div>
+		 <div style="float:left;margin-left:10px;width:300px;color:#444;border:1px solid #BBB;" id="linker">
+			<div style="cursor:default;width:290px;background:#BCFFBA;padding:4px;margin:1px;" class="item">
+				<input style="margin-right: 10px;width:120px;" class="first" type="text" value="First" />
+				<input style="width:120px" class="last" type="text" value="Last" />
+			</div>
+		</div>
+		<style>
+			.item.selected {background:#C9D9E9 !important;}
+		</style>
+		<script type="text/javascript" charset="utf-8">
+			$('#persons')
+				.items([
+					{first:'Isaac', last:'Newton'},
+					{first:'Johannes', last:'Keppler'},
+					{first:'Alessandro', last:'Volta'},
+					{first:'Blaise', last:'Pascal'}
+				])
+				.selectable({required:true, multiple:true})
+				
+				.chain();
+			
+			$('#linker')
+				.items('link', '#persons', 'selected')
+				.chain(function(){
+					var self = this;
+					this.find(':input').keyup(function(){
+						self.item({
+							first: self.find('.first').val(),
+							last: self.find('.last').val()
+						})
+					})
+				})
+		</script>
+	</body>
+</html>

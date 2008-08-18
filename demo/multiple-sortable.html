@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<title>Demo: Fill Up with Data</title>
+		<script src="../lib/jquery-1.2.6.pack.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../lib/chain.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../build/interaction.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		 <div style="float:left;width:250px;color:#444;border:1px solid #BBB;" class="sortable" id="sortable1">
+			<div style="cursor:default;width:240px;background:#DCE9F4;padding:4px;margin:1px;" class="item"><span class="first">First</span> <span class="last">Last</span></div>
+		</div>
+		 <div style="float:left;margin-left:10px;width:250px;color:#444;border:1px solid #BBB;" class="sortable" id="sortable2">
+			<div style="cursor:default;width:240px;background:#BCFFBA;padding:4px;margin:1px;" class="item"><span class="last">Last</span>, <span class="first">First</span></div>
+		</div>
+		<style>
+			#interaction-draggable-container {border:1px solid #BBB;background:white;}
+		</style>
+		<script type="text/javascript" charset="utf-8">
+			$('#sortable1')
+				.items([
+					{first:'Isaac', last:'Newton'},
+					{first:'Johannes', last:'Keppler'},
+					{first:'Alessandro', last:'Volta'},
+					{first:'Blaise', last:'Pascal'}
+				])
+				.sortable({accept:'sortable'})
+				.chain();
+			
+			$('#sortable2')
+				.items([
+					{first:'Isaac', last:'Newton'},
+					{first:'Johannes', last:'Keppler'},
+					{first:'Alessandro', last:'Volta'},
+					{first:'Blaise', last:'Pascal'}
+				])
+				.sortable({accept:'sortable'})
+				.chain();
+		</script>
+	</body>
+</html>

@@ -167,6 +167,7 @@ $.Interaction.add('droppable', {
 	
 	dragDeactive: function()
 	{
+		
 		this.callListener('deactive', this.draggable.item);
 	},
 	
@@ -200,8 +201,10 @@ $.Interaction.listen('draggable', {
 	{
 		if(ddmanager.status != this.lastDragStatus)
 		{
-			this.container.removeClass(this.setting.classPrefix+this.lastDragStatus);
-			this.container.addClass(this.setting.classPrefix+ddmanager.status);
+			if(this.lastDragStatus)
+				this.container.removeClass(this.setting.classPrefix+this.lastDragStatus);
+			if(ddmanager.status)
+				this.container.addClass(this.setting.classPrefix+ddmanager.status);
 			this.lastDragStatus = ddmanager.status;
 		}
 		

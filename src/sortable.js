@@ -6,7 +6,7 @@ $.Interaction.add('sortable', {
 		marker: 'transparent',
 		boundary: 6,
 		align: 'vertical',
-		accept: false,
+		accept: function(){return false},
 		transfer: 'move'
 	},
 	

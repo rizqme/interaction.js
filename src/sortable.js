@@ -194,10 +194,12 @@ $.Interaction.add('sortable', {
 			if(sortable.setting.transfer == 'move')
 				item.remove();
 				
-			sortable.draggable.mouseUp(sortable.draggable.mouseDownEvent);
 			this.draggable.item = newItem;
 			this.draggable.cursor = cursor;
+			
+			sortable.draggable.mouseUp(sortable.draggable.mouseDownEvent);
 			this.draggable.mouseDown(sortable.draggable.mouseMoveEvent);
+			this.draggable.isMouseStarted = this.draggable.mouseStart(sortable.draggable.mouseMoveEvent);
 		}
 	},
 	

@@ -71,6 +71,8 @@ $.Interaction.add('draggable', $.extend({}, $.Interaction.mouse, {
 			}
 		}
 		
+		this.isFirstTime = false;
+		
 		this.mouseDrag(event);
 		
 		this.container
@@ -87,6 +89,19 @@ $.Interaction.add('draggable', $.extend({}, $.Interaction.mouse, {
 	{
 		this.position.x = event.pageX;
 		this.position.y = event.pageY;
+		
+		// Axis fix
+		if(!this.isFirstTime)
+		{
+			var offset = this.item.offset();
+			
+			if(this.setting.axis == 'y')
+				this.container[0].style.left = offset.left + 'px';
+			else if(this.setting.axis == 'x')
+				this.container[0].style.top =  offset.top + 'px';
+			
+			this.isFirstTime = true;
+		}
 		
 		if(this.setting.axis != 'y')
 			this.container[0].style.left = (this.position.x - this.cursor.left) + 'px';

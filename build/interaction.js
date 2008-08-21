@@ -452,6 +452,8 @@ $.Interaction.add('draggable', $.extend({}, $.Interaction.mouse, {
 		if(!this.item || !this.item.length)
 			return this.mouseUp(event);
 		
+		var offset = this.item.eq(0).offset();
+		
 		if(!this.cursor)
 		{
 			this.cursor = {};
@@ -462,13 +464,15 @@ $.Interaction.add('draggable', $.extend({}, $.Interaction.mouse, {
 			}
 			else
 			{
-				var offset = this.item.eq(0).offset();
 				this.cursor.left = event.pageX - offset.left;
 				this.cursor.top = event.pageY - offset.top;
 			}
 		}
 		
-		this.isFirstTime = false;
+		if(this.setting.axis == 'y')
+			this.container[0].style.left = offset.left + 'px';
+		else if(this.setting.axis == 'x')
+			this.container[0].style.top =  offset.top + 'px';
 		
 		this.mouseDrag(event);
 		
@@ -486,19 +490,6 @@ $.Interaction.add('draggable', $.extend({}, $.Interaction.mouse, {
 	{
 		this.position.x = event.pageX;
 		this.position.y = event.pageY;
-		
-		// Axis fix
-		if(!this.isFirstTime)
-		{
-			var offset = this.item.offset();
-			
-			if(this.setting.axis == 'y')
-				this.container[0].style.left = offset.left + 'px';
-			else if(this.setting.axis == 'x')
-				this.container[0].style.top =  offset.top + 'px';
-			
-			this.isFirstTime = true;
-		}
 		
 		if(this.setting.axis != 'y')
 			this.container[0].style.left = (this.position.x - this.cursor.left) + 'px';

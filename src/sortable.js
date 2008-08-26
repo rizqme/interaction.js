@@ -174,9 +174,9 @@ $.Interaction.add('sortable', {
 		this.element.update();
 	},
 	
-	dragOver: function(droppable, item)
+	dragOver: function(droppable, item, bypass)
 	{
-		if(item.item('root') == this.element)
+		if(bypass || item.item('root')[0] == this.element[0])
 			return;
 		
 		var sortable = item.item('root').data('interaction-sortable');
@@ -198,8 +198,11 @@ $.Interaction.add('sortable', {
 			this.draggable.cursor = cursor;
 			
 			sortable.draggable.mouseUp(sortable.draggable.mouseDownEvent);
-			this.draggable.mouseDown(sortable.draggable.mouseMoveEvent);
-			this.draggable.isMouseStarted = this.draggable.mouseStart(sortable.draggable.mouseMoveEvent);
+			
+			var event = sortable.draggable.mouseMoveEvent || sortable.draggable.mouseDownEvent;
+			this.draggable.mouseDown(event);
+			this.draggable.isMouseStarted = this.draggable.mouseStart(event);
+			droppable.callListener('over', droppable, item, true);
 		}
 	},
 	

@@ -73,7 +73,7 @@ $.Interaction.add('droppable', {
 	{
 		var oldparent = this.parent || ddmanager;
 		
-		var parent = this.element.parents('.interaction-droppable');
+		var parent = this.element.parents('.interaction-droppable').eq(0);
 		this.parent = parent.length ? parent.data('interaction-droppable') : false;
 		
 		if(this.parent != oldparent)
@@ -102,7 +102,7 @@ $.Interaction.add('droppable', {
 		
 		this.draggable = ddmanager.draggable;
 		
-		if(this.draggable.element != this.element && this.setting.accept(this.draggable.element, this.draggable.item))
+		if(this.setting.accept(this.draggable.element, this.draggable.item))
 		{
 			this.isActive = true;
 			this.dragActive();

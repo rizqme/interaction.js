@@ -165,35 +165,35 @@ $.Interaction.listen('draggable', {
 			return;
 		
 		var self = this;
-		this.scrollElement = this.element.chain('anchor');
-		this.scrollOffset = this.scrollElement.offset();
-		$.extend(this.scrollOffset, {
+		
+		var el = this.setting.scrollElement
+			? $(this.setting.scrollElement)[0] : this.element.chain('anchor')[0];
+		var offset = $(el).offset();
+		$.extend(offset, {
 			scrollHeight:0, 
 			scrollWidth:0, 
-			height:this.scrollElement[0].offsetHeight,
-			width:this.scrollElement[0].offsetWidth
+			height:el.offsetHeight,
+			width:el.offsetWidth
 		});
 	
-		this.scrollElement.children().each(function(){
-			self.scrollOffset.scrollHeight += this.offsetHeight;
-			self.scrollOffset.scrollWidth += this.offsetWidth;
+		$(el).children().each(function(){
+			offset.scrollHeight += this.offsetHeight;
+			offset.scrollWidth += this.offsetWidth;
 		});
 		
 		this.temp.scrollInt = setInterval(function(){
-			var el = self.scrollElement[0];
-			var elOff = self.scrollOffset;
 			var s = self.setting;
 			var pos = self.position;
 			var doc = $(document);
 	
-			if(elOff.scrollHeight > elOff.height && Math.abs(pos.y - elOff.top) < s.scrollArea)
+			if(offset.scrollHeight > offset.height && Math.abs(pos.y - offset.top) < s.scrollArea)
 				el.scrollTop -= s.scrollSpeed;
-			if(elOff.scrollHeight > elOff.height && Math.abs(elOff.top + elOff.height - pos.y) < s.scrollArea)
+			if(offset.scrollHeight > offset.height && Math.abs(offset.top + offset.height - pos.y) < s.scrollArea)
 				el.scrollTop += s.scrollSpeed;
 	
-			if(elOff.scrollWidth > elOff.width && Math.abs(pos.x - elOff.left) < s.scrollArea)
+			if(offset.scrollWidth > offset.width && Math.abs(pos.x - offset.left) < s.scrollArea)
 				el.scrollLeft -= s.scrollSpeed;
-			if(elOff.scrollWidth > elOff.width && Math.abs(elOff.left + elOff.width - pos.x) < s.scrollArea)
+			if(offset.scrollWidth > offset.width && Math.abs(offset.left + offset.width - pos.x) < s.scrollArea)
 				el.scrollLeft += s.scrollSpeed;
 	
 			if(pos.y - doc.scrollTop() < s.scrollArea)

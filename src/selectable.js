@@ -6,7 +6,9 @@ $.Interaction.add('selectable', {
 		multiple: false,
 		required: false,
 		selected: null,
+		handle: null,
 		selectClass: 'selected',
+		nested: false,
 		drag: false
 	},
 	
@@ -32,14 +34,23 @@ $.Interaction.add('selectable', {
 	
 	builder: function(item)
 	{
-		var self = this;
+		var handle, self = this;
+		
+		if(this.setting.handle)
+			handle = item.find('> '+this.setting.handle+', *:not(.chain-element) '+this.setting.handle).eq(0);
+		
+		if(!handle)
+			handle = item;
+		
 		item
 			.bind('mousedown.selectable-item', function(event){
-				if(self.isEnabled)
-					self.mouseDown(event, item);
+				if(self.isEnabled
+					&& $(event.target).parents().add(event.target).filter(function(){return handle[0] == this;}).length)
+					return self.mouseDown(event, item);
 			})
 			.bind('click.selectable-item', function(event){
-				if(self.isEnabled)
+				if(self.isEnabled
+					&& $(event.target).parents().add(event.target).filter(function(){return handle[0] == this;}).length)
 					return self.mouseClick(event, item);
 			});
 		
@@ -104,27 +115,77 @@ $.Interaction.add('selectable', {
 		}
 	},
 	
+	getParent: function()
+	{
+		return this.setting.nested ? this.element.parents('.interaction-selectable')
+			.eq(0) : $().eq(-1);
+	},
+	
+	getAncestor: function()
+	{
+		var parent = this.getParent();
+		
+		if(parent.length)
+			return parent.data('interaction-selectable').getAncestor();
+		else
+			return this.element;
+	},
+	
+	getNested: function(recursive)
+	{
+		var selectable = this.element
+			.find('.interaction-selectable')
+			.not(this.element.find('.interaction-selectable .interaction-selectable'))
+			.filter(function(){
+				var sel = $(this).data('interaction-selectable');
+				return sel ? sel.setting.nested : false;
+			});
+		
+		if(!recursive)
+			return selectable;
+		
+		var res = [];
+		selectable.each(function(){
+			res.push(this);
+			$(this).data('interaction-selectable').getNested(true).each(function(){
+				res.push(this)
+			});
+		});
+		
+		return $(res);
+	},
+	
+	getSelected: function()
+	{
+		var selected = this.selected;
+		this.getNested().each(function(){
+			var selectable = $(this).data('interaction-selectable');
+			selected = selected.add(selectable.getSelected());
+		});
+		
+		return selected;
+	},
+	
 	select: function()
 	{
 		var args = Array.prototype.slice.call(arguments);
 		var self = this;
 		
-		this.selected.removeClass(this.setting.selectClass);
+		var selected = this.selected;
+		
+		this.getAncestor().data('interaction-selectable').clear();
 		
 		$.each(args, function(){
 			if(this && typeof this != 'boolean')
-				self.selected = self.selected.add(self.element.items(this));
-		});
-		
-		this.selected = this.selected.filter(function(){
-			var root = $(this).item('root');
-			return this && root && root[0] == self.element[0];
+				selected = selected.add(self.element.items(this));
 		});
 		
 		if(!this.setting.multiple)
-			this.selected = this.selected.eq(this.selected.length - 1);
+			selected = selected.eq(selected.length - 1);
 		
-		this.selected.addClass(this.setting.selectClass);
+		selected.addClass(this.setting.selectClass);
+		
+		this.selected = selected;
 	},
 	
 	unselect: function()
@@ -146,6 +207,10 @@ $.Interaction.add('selectable', {
 	{
 		this.selected.removeClass(this.setting.selectClass);
 		this.selected = $().eq(1);
+		
+		this.getNested().each(function(){
+			$(this).data('interaction-selectable').clear();
+		});
 	},
 	
 	$select: function()
@@ -189,11 +254,11 @@ $.Interaction.add('selectable', {
 		if(!this.isEnabled) return $().eq(-1);
 		
 		if(item === true)
-			return this.selected;
+			return this.getSelected();
 		else if(arguments.length && typeof item != 'boolean' && item !== null)
 			return this.selected.index(this.element.items(item)) > -1;
 		else
-			return this.selected.filter(':visible');
+			return this.getSelected().filter(':visible');
 	}
 });
 

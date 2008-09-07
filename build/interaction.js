@@ -128,6 +128,9 @@ $.Interaction.base =
 		this.element.chain('plugin', this.name, function(){
 			self.builder($(this));
 		});
+		this.element.bind('destroy', function(){
+			self.$destroy();
+		});
 	},
 
 	wrap: function(fn)
@@ -226,7 +229,7 @@ $.Interaction.base =
 	
 		this.element.chain('plugin', this.name, null);
 	
-		this.element.getItemEl().each(function(){
+		this.element.items().each(function(){
 			$(this).unbind('.'+this.name+'-item');
 		});
 		
@@ -562,35 +565,35 @@ $.Interaction.listen('draggable', {
 			return;
 		
 		var self = this;
-		this.scrollElement = this.element.chain('anchor');
-		this.scrollOffset = this.scrollElement.offset();
-		$.extend(this.scrollOffset, {
+		
+		var el = this.setting.scrollElement
+			? $(this.setting.scrollElement)[0] : this.element.chain('anchor')[0];
+		var offset = $(el).offset();
+		$.extend(offset, {
 			scrollHeight:0, 
 			scrollWidth:0, 
-			height:this.scrollElement[0].offsetHeight,
-			width:this.scrollElement[0].offsetWidth
+			height:el.offsetHeight,
+			width:el.offsetWidth
 		});
 	
-		this.scrollElement.children().each(function(){
-			self.scrollOffset.scrollHeight += this.offsetHeight;
-			self.scrollOffset.scrollWidth += this.offsetWidth;
+		$(el).children().each(function(){
+			offset.scrollHeight += this.offsetHeight;
+			offset.scrollWidth += this.offsetWidth;
 		});
 		
 		this.temp.scrollInt = setInterval(function(){
-			var el = self.scrollElement[0];
-			var elOff = self.scrollOffset;
 			var s = self.setting;
 			var pos = self.position;
 			var doc = $(document);
 	
-			if(elOff.scrollHeight > elOff.height && Math.abs(pos.y - elOff.top) < s.scrollArea)
+			if(offset.scrollHeight > offset.height && Math.abs(pos.y - offset.top) < s.scrollArea)
 				el.scrollTop -= s.scrollSpeed;
-			if(elOff.scrollHeight > elOff.height && Math.abs(elOff.top + elOff.height - pos.y) < s.scrollArea)
+			if(offset.scrollHeight > offset.height && Math.abs(offset.top + offset.height - pos.y) < s.scrollArea)
 				el.scrollTop += s.scrollSpeed;
 	
-			if(elOff.scrollWidth > elOff.width && Math.abs(pos.x - elOff.left) < s.scrollArea)
+			if(offset.scrollWidth > offset.width && Math.abs(pos.x - offset.left) < s.scrollArea)
 				el.scrollLeft -= s.scrollSpeed;
-			if(elOff.scrollWidth > elOff.width && Math.abs(elOff.left + elOff.width - pos.x) < s.scrollArea)
+			if(offset.scrollWidth > offset.width && Math.abs(offset.left + offset.width - pos.x) < s.scrollArea)
 				el.scrollLeft += s.scrollSpeed;
 	
 			if(pos.y - doc.scrollTop() < s.scrollArea)
@@ -647,7 +650,6 @@ $.Interaction.add('droppable', {
 	{
 		this.base();
 		this.setting = $.extend(this.setting, setting);
-		this.draggable = null
 		this.droppables = [];
 		this.isOver = false;
 		this.childOver = false;
@@ -716,30 +718,40 @@ $.Interaction.add('droppable', {
 	
 	mouseStart: function()
 	{
+		$.each(this.droppables, function(){
+			this.mouseStart();
+		});
+		
 		if(!this.isEnabled) return;
 		
 		this.updateParent();
 		
-		this.draggable = ddmanager.draggable;
-		
-		if(this.setting.accept(this.draggable.element, this.draggable.item))
+		if(this.setting.accept(ddmanager.draggable.element, ddmanager.draggable.item))
 		{
 			this.isActive = true;
 			this.dragActive();
 		}
-		
-		$.each(this.droppables, function(){
-			this.mouseStart();
-		});
 	},
 	
 	mouseDrag: function()
 	{
+		$.each(this.droppables, function(){
+			if(!this.setting.nested)
+				this.mouseDrag();
+		});
+		
 		var intersect = false;
 		
 		if(this.isEnabled && this.isActive)
 		{
-			intersect = this.intersect(this.draggable);
+			intersect = this.intersect(ddmanager.draggable);
+			
+			if(intersect)
+				$.each(this.droppables, function(){
+					if(this.setting.nested)
+						this.mouseDrag();
+				});
+			
 			if((!intersect || (intersect && this.childOver)) && this.isOver)
 			{
 				this.dragOut();
@@ -754,56 +766,70 @@ $.Interaction.add('droppable', {
 				if(this.parent && this.setting.nested)
 					this.parent.childOver = true;
 			}
+			else if(this.childOver && this.parent && this.setting.nested)
+				this.parent.childOver = true;
 		}
 		
-		$.each(this.droppables, function(){
-			if(!this.setting.nested || (this.setting.nested && intersect))
-				this.mouseDrag();
-		});
 	},
 	
 	mouseStop: function()
 	{
-		var intersect = this.intersect(this.draggable);
+		$.each(this.droppables, function(){
+			this.mouseStop();
+		});
+		
+		var intersect = this.intersect(ddmanager.draggable);
 		if(this.isActive && intersect && !this.childOver)
 			this.dragDrop();
 		
 		this.dragDeactive();
 		
-		this.draggable = null;
 		this.isActive = false;
 		this.isOver = false;
 		this.childOver = false;
-		
-		$.each(this.droppables, function(){
-			this.mouseStop();
-		});
 	},
 	
 	dragActive: function()
 	{
-		this.callListener('active', this.draggable.item);
+		this.callListener('active', ddmanager.draggable.item);
 	},
 	
 	dragDeactive: function()
 	{
 		
-		this.callListener('deactive', this.draggable.item);
+		this.callListener('deactive', ddmanager.draggable.item);
 	},
 	
 	dragOver: function()
 	{
-		this.callListener('over', this.draggable.item);
+		this.callListener('over', ddmanager.draggable.item);
 	},
 	
 	dragOut: function()
 	{
-		this.callListener('out', this.draggable.item);
+		this.callListener('out', ddmanager.draggable.item);
 	},
 	
 	dragDrop: function()
 	{
-		this.callListener('drop', this.draggable.item);
+		this.callListener('drop', ddmanager.draggable.item);
+	},
+	
+	$destroy: function()
+	{
+		if(!this.dummy)
+		{
+			var droppables = [];
+			var parent = this.parent || ddmanager;
+			for(var i=0; i<parent.droppables.length; i++)
+				if(parent.droppables[i] != this)
+					droppables.push(parent.droppables[i]);
+			
+			parent.droppables = droppables;
+			this.destroy();
+		}
+		
+		return this.element;
 	}
 });
 
@@ -882,7 +908,7 @@ $.Interaction.add('sortable', {
 		boundary: 6,
 		align: 'vertical',
 		accept: function(){return false},
-		transfer: 'move'
+		method: 'move'
 	},
 	
 	init: function(setting)
@@ -927,7 +953,7 @@ $.Interaction.add('sortable', {
 		
 		this.draggable = this.element.data('interaction-draggable');
 		
-		this.extractListener('reorder');
+		this.extractListener('reorder', 'transfer');
 		
 		this.currentIndex = -1;
 		this.lastIndex = -1;
@@ -1022,7 +1048,7 @@ $.Interaction.add('sortable', {
 				
 				if(moved)
 				{
-					self.callListener('reorder');
+					self.callListener('reorder', item);
 					self.lastIndex = self.currentIndex;
 					break;
 				}
@@ -1066,8 +1092,10 @@ $.Interaction.add('sortable', {
 			for(var i=0; i<data.length; i++)
 				newItem = newItem.add(this.element.items(data[i]));
 			
-			if(sortable.setting.transfer == 'move')
-				item.remove();
+			this.callListener('transfer', item, newItem);
+			
+			if(sortable.setting.method == 'move')
+				item.item('remove');
 				
 			this.draggable.item = newItem;
 			this.draggable.cursor = cursor;
@@ -1077,7 +1105,7 @@ $.Interaction.add('sortable', {
 			var event = sortable.draggable.mouseMoveEvent || sortable.draggable.mouseDownEvent;
 			this.draggable.mouseDown(event);
 			this.draggable.isMouseStarted = this.draggable.mouseStart(event);
-			droppable.callListener('over', droppable, item, true);
+			droppable.callListener('over', item, true);
 		}
 	},
 	
@@ -1101,7 +1129,9 @@ $.Interaction.add('selectable', {
 		multiple: false,
 		required: false,
 		selected: null,
+		handle: null,
 		selectClass: 'selected',
+		nested: false,
 		drag: false
 	},
 	
@@ -1127,14 +1157,23 @@ $.Interaction.add('selectable', {
 	
 	builder: function(item)
 	{
-		var self = this;
+		var handle, self = this;
+		
+		if(this.setting.handle)
+			handle = item.find('> '+this.setting.handle+', *:not(.chain-element) '+this.setting.handle).eq(0);
+		
+		if(!handle)
+			handle = item;
+		
 		item
 			.bind('mousedown.selectable-item', function(event){
-				if(self.isEnabled)
-					self.mouseDown(event, item);
+				if(self.isEnabled
+					&& $(event.target).parents().add(event.target).filter(function(){return handle[0] == this;}).length)
+					return self.mouseDown(event, item);
 			})
 			.bind('click.selectable-item', function(event){
-				if(self.isEnabled)
+				if(self.isEnabled
+					&& $(event.target).parents().add(event.target).filter(function(){return handle[0] == this;}).length)
 					return self.mouseClick(event, item);
 			});
 		
@@ -1199,27 +1238,77 @@ $.Interaction.add('selectable', {
 		}
 	},
 	
+	getParent: function()
+	{
+		return this.setting.nested ? this.element.parents('.interaction-selectable')
+			.eq(0) : $().eq(-1);
+	},
+	
+	getAncestor: function()
+	{
+		var parent = this.getParent();
+		
+		if(parent.length)
+			return parent.data('interaction-selectable').getAncestor();
+		else
+			return this.element;
+	},
+	
+	getNested: function(recursive)
+	{
+		var selectable = this.element
+			.find('.interaction-selectable')
+			.not(this.element.find('.interaction-selectable .interaction-selectable'))
+			.filter(function(){
+				var sel = $(this).data('interaction-selectable');
+				return sel ? sel.setting.nested : false;
+			});
+		
+		if(!recursive)
+			return selectable;
+		
+		var res = [];
+		selectable.each(function(){
+			res.push(this);
+			$(this).data('interaction-selectable').getNested(true).each(function(){
+				res.push(this)
+			});
+		});
+		
+		return $(res);
+	},
+	
+	getSelected: function()
+	{
+		var selected = this.selected;
+		this.getNested().each(function(){
+			var selectable = $(this).data('interaction-selectable');
+			selected = selected.add(selectable.getSelected());
+		});
+		
+		return selected;
+	},
+	
 	select: function()
 	{
 		var args = Array.prototype.slice.call(arguments);
 		var self = this;
 		
-		this.selected.removeClass(this.setting.selectClass);
+		var selected = this.selected;
+		
+		this.getAncestor().data('interaction-selectable').clear();
 		
 		$.each(args, function(){
 			if(this && typeof this != 'boolean')
-				self.selected = self.selected.add(self.element.items(this));
-		});
-		
-		this.selected = this.selected.filter(function(){
-			var root = $(this).item('root');
-			return this && root && root[0] == self.element[0];
+				selected = selected.add(self.element.items(this));
 		});
 		
 		if(!this.setting.multiple)
-			this.selected = this.selected.eq(this.selected.length - 1);
+			selected = selected.eq(selected.length - 1);
 		
-		this.selected.addClass(this.setting.selectClass);
+		selected.addClass(this.setting.selectClass);
+		
+		this.selected = selected;
 	},
 	
 	unselect: function()
@@ -1241,6 +1330,10 @@ $.Interaction.add('selectable', {
 	{
 		this.selected.removeClass(this.setting.selectClass);
 		this.selected = $().eq(1);
+		
+		this.getNested().each(function(){
+			$(this).data('interaction-selectable').clear();
+		});
 	},
 	
 	$select: function()
@@ -1284,11 +1377,11 @@ $.Interaction.add('selectable', {
 		if(!this.isEnabled) return $().eq(-1);
 		
 		if(item === true)
-			return this.selected;
+			return this.getSelected();
 		else if(arguments.length && typeof item != 'boolean' && item !== null)
 			return this.selected.index(this.element.items(item)) > -1;
 		else
-			return this.selected.filter(':visible');
+			return this.getSelected().filter(':visible');
 	}
 });
 

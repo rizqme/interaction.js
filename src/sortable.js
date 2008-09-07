@@ -7,7 +7,7 @@ $.Interaction.add('sortable', {
 		boundary: 6,
 		align: 'vertical',
 		accept: function(){return false},
-		transfer: 'move'
+		method: 'move'
 	},
 	
 	init: function(setting)
@@ -52,7 +52,7 @@ $.Interaction.add('sortable', {
 		
 		this.draggable = this.element.data('interaction-draggable');
 		
-		this.extractListener('reorder');
+		this.extractListener('reorder', 'transfer');
 		
 		this.currentIndex = -1;
 		this.lastIndex = -1;
@@ -147,7 +147,7 @@ $.Interaction.add('sortable', {
 				
 				if(moved)
 				{
-					self.callListener('reorder');
+					self.callListener('reorder', item);
 					self.lastIndex = self.currentIndex;
 					break;
 				}
@@ -191,8 +191,10 @@ $.Interaction.add('sortable', {
 			for(var i=0; i<data.length; i++)
 				newItem = newItem.add(this.element.items(data[i]));
 			
-			if(sortable.setting.transfer == 'move')
-				item.remove();
+			this.callListener('transfer', item, newItem);
+			
+			if(sortable.setting.method == 'move')
+				item.item('remove');
 				
 			this.draggable.item = newItem;
 			this.draggable.cursor = cursor;
@@ -202,7 +204,7 @@ $.Interaction.add('sortable', {
 			var event = sortable.draggable.mouseMoveEvent || sortable.draggable.mouseDownEvent;
 			this.draggable.mouseDown(event);
 			this.draggable.isMouseStarted = this.draggable.mouseStart(event);
-			droppable.callListener('over', droppable, item, true);
+			droppable.callListener('over', item, true);
 		}
 	},
 	

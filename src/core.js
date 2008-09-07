@@ -101,6 +101,9 @@ $.Interaction.base =
 		this.element.chain('plugin', this.name, function(){
 			self.builder($(this));
 		});
+		this.element.bind('destroy', function(){
+			self.$destroy();
+		});
 	},
 
 	wrap: function(fn)
@@ -199,7 +202,7 @@ $.Interaction.base =
 	
 		this.element.chain('plugin', this.name, null);
 	
-		this.element.getItemEl().each(function(){
+		this.element.items().each(function(){
 			$(this).unbind('.'+this.name+'-item');
 		});
 		

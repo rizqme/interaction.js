@@ -27,7 +27,6 @@ $.Interaction.add('droppable', {
 	{
 		this.base();
 		this.setting = $.extend(this.setting, setting);
-		this.draggable = null
 		this.droppables = [];
 		this.isOver = false;
 		this.childOver = false;
@@ -96,30 +95,40 @@ $.Interaction.add('droppable', {
 	
 	mouseStart: function()
 	{
+		$.each(this.droppables, function(){
+			this.mouseStart();
+		});
+		
 		if(!this.isEnabled) return;
 		
 		this.updateParent();
 		
-		this.draggable = ddmanager.draggable;
-		
-		if(this.setting.accept(this.draggable.element, this.draggable.item))
+		if(this.setting.accept(ddmanager.draggable.element, ddmanager.draggable.item))
 		{
 			this.isActive = true;
 			this.dragActive();
 		}
-		
-		$.each(this.droppables, function(){
-			this.mouseStart();
-		});
 	},
 	
 	mouseDrag: function()
 	{
+		$.each(this.droppables, function(){
+			if(!this.setting.nested)
+				this.mouseDrag();
+		});
+		
 		var intersect = false;
 		
 		if(this.isEnabled && this.isActive)
 		{
-			intersect = this.intersect(this.draggable);
+			intersect = this.intersect(ddmanager.draggable);
+			
+			if(intersect)
+				$.each(this.droppables, function(){
+					if(this.setting.nested)
+						this.mouseDrag();
+				});
+			
 			if((!intersect || (intersect && this.childOver)) && this.isOver)
 			{
 				this.dragOut();
@@ -134,56 +143,70 @@ $.Interaction.add('droppable', {
 				if(this.parent && this.setting.nested)
 					this.parent.childOver = true;
 			}
+			else if(this.childOver && this.parent && this.setting.nested)
+				this.parent.childOver = true;
 		}
 		
-		$.each(this.droppables, function(){
-			if(!this.setting.nested || (this.setting.nested && intersect))
-				this.mouseDrag();
-		});
 	},
 	
 	mouseStop: function()
 	{
-		var intersect = this.intersect(this.draggable);
+		$.each(this.droppables, function(){
+			this.mouseStop();
+		});
+		
+		var intersect = this.intersect(ddmanager.draggable);
 		if(this.isActive && intersect && !this.childOver)
 			this.dragDrop();
 		
 		this.dragDeactive();
 		
-		this.draggable = null;
 		this.isActive = false;
 		this.isOver = false;
 		this.childOver = false;
-		
-		$.each(this.droppables, function(){
-			this.mouseStop();
-		});
 	},
 	
 	dragActive: function()
 	{
-		this.callListener('active', this.draggable.item);
+		this.callListener('active', ddmanager.draggable.item);
 	},
 	
 	dragDeactive: function()
 	{
 		
-		this.callListener('deactive', this.draggable.item);
+		this.callListener('deactive', ddmanager.draggable.item);
 	},
 	
 	dragOver: function()
 	{
-		this.callListener('over', this.draggable.item);
+		this.callListener('over', ddmanager.draggable.item);
 	},
 	
 	dragOut: function()
 	{
-		this.callListener('out', this.draggable.item);
+		this.callListener('out', ddmanager.draggable.item);
 	},
 	
 	dragDrop: function()
 	{
-		this.callListener('drop', this.draggable.item);
+		this.callListener('drop', ddmanager.draggable.item);
+	},
+	
+	$destroy: function()
+	{
+		if(!this.dummy)
+		{
+			var droppables = [];
+			var parent = this.parent || ddmanager;
+			for(var i=0; i<parent.droppables.length; i++)
+				if(parent.droppables[i] != this)
+					droppables.push(parent.droppables[i]);
+			
+			parent.droppables = droppables;
+			this.destroy();
+		}
+		
+		return this.element;
 	}
 });
 

@@ -1097,7 +1097,7 @@ $.Interaction.add('sortable', {
 			if(sortable.setting.method == 'move')
 			{
 				item.each(function(){
-					$(this).item('remove');
+					$(this).item('remove', true);
 				});
 			}
 			item.item('root').update();

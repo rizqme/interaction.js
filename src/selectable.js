@@ -21,11 +21,11 @@ $.Interaction.add('selectable', {
 		
 		var self = this;
 		this.element.items('collection', 'selected', function(){
-			return self.selected.filter(':visible');
+			return self.getSelected().filter(':visible');
 		});
 		
 		this.element.items('collection', 'selected-all', function(){
-			return self.selected;
+			return self.getSelected();
 		});
 		
 		this.extractListener('select', 'unselect', 'change');
@@ -157,7 +157,10 @@ $.Interaction.add('selectable', {
 	
 	getSelected: function()
 	{
-		var selected = this.selected;
+		var anchor = this.element.chain('anchor')
+		var selected = this.selected.filter(function(){
+			return ($(this).parent()[0] == anchor[0]);
+		});
 		this.getNested().each(function(){
 			var selectable = $(this).data('interaction-selectable');
 			selected = selected.add(selectable.getSelected());

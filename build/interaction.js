@@ -1095,7 +1095,12 @@ $.Interaction.add('sortable', {
 			this.callListener('transfer', item, newItem);
 			
 			if(sortable.setting.method == 'move')
-				item.item('remove');
+			{
+				item.each(function(){
+					$(this).item('remove');
+				});
+			}
+			item.item('root').update();
 				
 			this.draggable.item = newItem;
 			this.draggable.cursor = cursor;
